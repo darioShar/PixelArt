@@ -5,6 +5,7 @@
 #include <vector>
 #include "interpolation.hpp"
 #include "interpolation_impl.hpp"
+#include "argparse.hpp"
 
 namespace hpc
 {
@@ -25,15 +26,15 @@ namespace hpc
     {
         auto curve = make_curve();
         return spline_interpolation(curve.first, curve.second);
-    }*/
+    }
 
-    /*void test_accessibility1()
+    void test_accessibility1()
     {
         spline_interpolation si;
         double v = si.interpolate(2.5);
-    }*/
+    }
 
-    /*void test_polymorphism(const interpolation_impl& inter)
+    void test_polymorphism(const interpolation_impl& inter)
     {
         double y = inter.interpolate(1.2);
         std::cout << y << std:endl;
@@ -43,23 +44,23 @@ namespace hpc
     {
         spline_interpolation inter = get_test_spline_interpolation();
         test_polymorphism(inter);
-    }*/
+    }
 
-    /*interpolation_impl get_test_interpolation()
+    interpolation_impl get_test_interpolation()
     {
         auto curve = make_curve();
         return interpolation_impl(curve.first, curve.second);
-    }*/
+    }
 
-    /*void test_polymorphism1()
+    void test_polymorphism1()
     {
         auto curve = make_curve();
         interpolation_impl* inter = new spline_interpolation(curve.first, curve.last);
         test_polymorphism(*inter);
         delete inter;
-    }*/
+    }
 
-    /*void test_assign()
+    void test_assign()
     {
         auto curve = make_curve();
         interpolation_impl* inter = new spline_interpolation(curve.first, curve.last);
@@ -75,9 +76,9 @@ namespace hpc
 
         delete inter2;
         delete inter1;
-    }*/
+    }
 
-    /*void test_api()
+    void test_api()
     {
         auto curve = make_curve();
         interpolation ip(curve.first, curve.second, interpolation_type::spline);
@@ -86,12 +87,24 @@ namespace hpc
     }*/
 }
 
+struct PixelArtArgs : public argparse::Args {
+    std::string& src_path = arg("a positional string argument");
+    int& k = kwarg("k", "A keyworded integer value");
+    float& alpha = kwarg("a,alpha", "An optional float value").set_default(0.5f);
+    bool& verbose = flag("v,verbose", "A flag to toggle verbose");
+};
+
 int main(int argc, char* argv[])
 {
-    //hpc::test_accessibility1();
-    //hpc::test_polymorphism();
-    //hpc::test_polymorphism1();
-    //hpc::test_assign();
-    //hpc::test_api();
+    // Set up program according to argument list
+    //PixelArtArgs args = argparse::parse<PixelArtArgs>(argc, argv);
+    //if (args.verbose)
+    //    args.print();
+
+    /*hpc::test_accessibility1();
+    hpc::test_polymorphism();
+    hpc::test_polymorphism1();
+    hpc::test_assign();
+    hpc::test_api();*/
     return 0;
 }
