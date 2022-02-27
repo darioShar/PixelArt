@@ -3,9 +3,10 @@ project(PixelArt)
 
 include(CheckCXXCompilerFlag)
 
-#set(SOURCE_FILE src/test_sfml.cpp)
-#set(SOURCE_FILE src/test_svg.cpp)
-set(SOURCE_FILE src/main.cpp)
+#set(SOURCE_FILE src/test/test_sfml.cpp)
+#set(SOURCE_FILE src/test/test_svg.cpp)
+set(SOURCE_FILE src/test/test_graph.cpp)
+#set(SOURCE_FILE src/main.cpp)
 
 
 if (CMAKE_CXX_COMPILER_ID MATCHES "Clang" OR CMAKE_CXX_COMPILER_ID MATCHES "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES "Intel")
@@ -30,7 +31,7 @@ set(SRCS
     src/interpolation.cpp
     src/interpolation_impl.hpp
     src/interpolation_impl.cpp
-    ${SOURCE_FILE})
+    ${SOURCE_FILE} "src/graph.h" "src/graph.cpp" "src/image.h" "src/test/test_graph.cpp")
 
 #we add the executable of the program
 

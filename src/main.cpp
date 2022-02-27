@@ -7,6 +7,39 @@
 #include "interpolation_impl.hpp"
 #include "argparse.hpp"
 
+
+struct PixelArtArgs : public argparse::Args {
+    std::string& src_path = arg("a positional string argument");
+    int& k = kwarg("k", "A keyworded integer value");
+    float& alpha = kwarg("a,alpha", "An optional float value").set_default(0.5f);
+    bool& verbose = flag("v,verbose", "A flag to toggle verbose");
+};
+
+
+int main(int argc, char* argv[])
+{
+    // Set up program according to argument list
+    //PixelArtArgs args = argparse::parse<PixelArtArgs>(argc, argv);
+    //if (args.verbose)
+    //    args.print();
+    return 0;
+}
+
+
+
+
+
+
+
+
+
+/*hpc::test_accessibility1();
+    hpc::test_polymorphism();
+    hpc::test_polymorphism1();
+    hpc::test_assign();
+    hpc::test_api();*/
+
+
 namespace hpc
 {
     using curve_type = std::pair<std::vector<double>, std::vector<double>>;
@@ -16,9 +49,9 @@ namespace hpc
         std::vector<double> x = { -4.5, -3.5, -2.5, -1.5, -0.5, 0.5, 1.5, 2.5, 3.5, 4.5 };
         std::vector<double> y(x.size());
         std::transform(x.begin(), x.end(), y.begin(), [](double v)
-        {
-            return 1. / (1 + std::exp(-0.25 * v));
-        });
+            {
+                return 1. / (1 + std::exp(-0.25 * v));
+            });
         return std::make_pair(std::move(x), std::move(y));
     }
 
@@ -85,26 +118,4 @@ namespace hpc
         double res = ip.interpolate(0.25);
         std::cout << res << std::endl;
     }*/
-}
-
-struct PixelArtArgs : public argparse::Args {
-    std::string& src_path = arg("a positional string argument");
-    int& k = kwarg("k", "A keyworded integer value");
-    float& alpha = kwarg("a,alpha", "An optional float value").set_default(0.5f);
-    bool& verbose = flag("v,verbose", "A flag to toggle verbose");
-};
-
-int main(int argc, char* argv[])
-{
-    // Set up program according to argument list
-    //PixelArtArgs args = argparse::parse<PixelArtArgs>(argc, argv);
-    //if (args.verbose)
-    //    args.print();
-
-    /*hpc::test_accessibility1();
-    hpc::test_polymorphism();
-    hpc::test_polymorphism1();
-    hpc::test_assign();
-    hpc::test_api();*/
-    return 0;
 }

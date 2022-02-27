@@ -3,8 +3,6 @@
 #include <iostream>
 #include <utility>
 #include <vector>
-#include "interpolation.hpp"
-#include "interpolation_impl.hpp"
 #include <SFML/Window.hpp>
 #include <iostream>
 
