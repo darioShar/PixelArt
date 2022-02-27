@@ -3,8 +3,7 @@
 #include <iostream>
 #include <utility>
 #include <vector>
-#include "interpolation.hpp"
-#include "interpolation_impl.hpp"
+
 
 /*******************************************************************************
 *  The "New BSD License" : http://www.opensource.org/licenses/bsd-license.php  *
