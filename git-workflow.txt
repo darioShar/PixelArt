@@ -1,0 +1,9 @@
+Create main repo
+
+Clone locally. Pull to sync latest version form master to local. Or equivalently : git fetch (fetches all commit made) and git merge (merges all commits to a unique history of commands).
+Create branch with git branch or/and move to branch with git checkout -b 
+Edit code
+git add to stage file for commit. git remove does not unstage but stages deletion
+git commit to create record of changes made
+git push to sync local changes to branch
+Create pull request from head-branch to base-branch
