@@ -4,7 +4,7 @@
 #include <utility>
 #include <vector>
 #include <SFML/Graphics.hpp>
-#include "../graph.h"
+#include "../../graph.h"
 
 
 
@@ -15,7 +15,7 @@ int main(int argc, char* argv[])
 	std::cout << "Starting test program on graph" << std::endl;
 	//Image contains Pixel Data
 	sf::Image inputImage;
-	if (!inputImage.loadFromFile(("D:/Dario/3A/MAP586/projet/PixelArt/src/img/leaf.png"))) {
+	if (!inputImage.loadFromFile(("D:\\Desktop\\Dario\\3A\\MAP586\\projet\\PixelArt\\src\\img\\smw2_yoshi_02_input.png"))) {
 		std::cout << "Failed to open image file for processing" << std::endl;
 		return -1;
 	}
