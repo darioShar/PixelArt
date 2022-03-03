@@ -19,7 +19,7 @@ Graph::Graph(const sf::Image& image) : m_image(image), m_colorOp(image)
 }
 
 void Graph::fill_edges() {
-	sf::Vector2u& dim = m_image.getSize();
+	sf::Vector2u dim = m_image.getSize();
 
 	//Preallocating structures, initialize to zero
 	const weight_per_dir temp_wpd = {}; // initialize to zero
