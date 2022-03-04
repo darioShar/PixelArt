@@ -10,4 +10,5 @@ set(TEST_TARGET test_graph)
 add_executable(${TEST_TARGET} ${SRCS} ${SOURCE_FILE})
 
 target_link_libraries(test_graph sfml-graphics sfml-window sfml-system)
+target_include_directories(test_graph PRIVATE ${INCLUDE_FOLDER})
 target_include_directories(test_graph PRIVATE ${INCLUDE_SFML_FOLDER})

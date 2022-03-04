@@ -11,4 +11,5 @@ add_executable(${TEST_TARGET} ${SOURCE_FILE})
 
 #target_link_libraries(test_svg sfml-graphics sfml-window sfml-system)
 #target_include_directories(test_svg PRIVATE ${INCLUDE_SFML_FOLDER})
+target_include_directories(test_svg PRIVATE ${INCLUDE_FOLDER})
 target_include_directories(test_svg PRIVATE ${INCLUDE_SVG_FOLDER})
