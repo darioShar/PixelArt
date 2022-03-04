@@ -1,7 +1,7 @@
 #include <algorithm>
 #include <iterator>
 #include <iostream>
-#include "interpolation_impl.hpp"
+#include <PixelArt/interpolation_impl.hpp>
 
 namespace hpc
 {

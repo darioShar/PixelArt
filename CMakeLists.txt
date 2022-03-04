@@ -42,6 +42,7 @@ if (NOT SFML_USE_SOURCE)
 endif()
 
 # Include files
+set(INCLUDE_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/include)
 set(INCLUDE_SFML_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/deps/SFML/include)
 set(INCLUDE_SVG_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/deps/simple-svg/include)
 set(INCLUDE_ARGPARSE_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/deps/argparse/include)
@@ -50,13 +51,10 @@ set(INCLUDE_ARGPARSE_FOLDER ${CMAKE_CURRENT_SOURCE_DIR}/deps/argparse/include)
 set(SOURCE_FILE src/main.cpp)
 
 set(SRCS
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/interpolation.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/interpolation.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/interpolation_impl.hpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/interpolation_impl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/graph.h
     ${CMAKE_CURRENT_SOURCE_DIR}/src/graph.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/image.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/voronoi.cpp
 )
 
 # specify build tree
@@ -102,6 +100,11 @@ endif()
 target_link_libraries(${PIXEL_ART_EXE} PRIVATE sfml-graphics sfml-window sfml-system)
 target_link_libraries(${PIXEL_ART_STATIC_LIB} PRIVATE sfml-graphics sfml-window sfml-system)
 target_link_libraries(${PIXEL_ART_SHARED_LIB} PRIVATE sfml-graphics sfml-window sfml-system)
+
+#include dir
+target_include_directories(${PIXEL_ART_EXE}  PRIVATE ${INCLUDE_FOLDER})
+target_include_directories(${PIXEL_ART_STATIC_LIB}  PRIVATE ${INCLUDE_FOLDER})
+target_include_directories(${PIXEL_ART_SHARED_LIB}  PRIVATE ${INCLUDE_FOLDER})
 
 #include deps
 

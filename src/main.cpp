@@ -3,9 +3,9 @@
 #include <iostream>
 #include <utility>
 #include <vector>
-#include "interpolation.hpp"
-#include "interpolation_impl.hpp"
-#include "argparse.hpp"
+#include <PixelArt/interpolation.hpp>
+#include <PixelArt/interpolation_impl.hpp>
+#include <argparse.hpp>
 
 
 struct PixelArtArgs : public argparse::Args {
