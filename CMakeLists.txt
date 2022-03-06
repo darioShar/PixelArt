@@ -10,12 +10,15 @@ include(CheckCXXCompilerFlag)
 set(DEFAULT_SFML_USE_SOURCE ON)
 set(DEFAULT_SFML_STATIC_LIBRARIES ON)
 set(DEFAULT_SFML_DIR "${CMAKE_CURRENT_SOURCE_DIR}/deps/SFML/cmake")
+set(DEFAULT_EXTLIBS_INCLUDE "${CMAKE_CURRENT_SOURCE_DIR}/deps/SFML/extlibs/headers")
+set(DEFAULT_EXTLIBS_LIBS "${CMAKE_CURRENT_SOURCE_DIR}/deps/SFML/extlibs/libs-msvc/x64")
 
 
 set(SFML_USE_SOURCE ${DEFAULT_SFML_USE_SOURCE} CACHE STRING "Use SFML libraries built from sources in deps/SFML")
 set(SFML_STATIC_LIBRARIES ${SFML_STATIC_LIBRARIES} CACHE STRING "Use already built SFML libraries in dir SFML_DIR")
 set(SFML_DIR ${SFML_DEFAULT_DIR} CACHE STRING "SFML libs location. Should be default ${SFML_DEFAULT_DIR}")
-
+set(EXTLIBS_INCLUDE ${DEFAULT_EXTLIBS_INCLUDE} CACHE STRING "Header location of extlibs used by SFML. Default is ${DEFAULT_EXTLIBS_INCLUDE}")
+set(EXTLIBS_LIBS ${DEFAULT_EXTLIBS_LIBS} CACHE STRING "Location of extlibs used by SFML. Default is  ${DEFAULT_EXTLIBS_LIBS}")
 
 if(NOT SFML_USE_SOURCE)
     set(SFML_USE_SOURCE ${DEFAULT_SFML_USE_SOURCE})
@@ -26,6 +29,12 @@ endif()
 if(NOT SFML_DIR)
     set(SFML_DIR ${DEFAULT_SFML_DIR})
 endif()
+if(NOT EXTLIBS_INCLUDE)
+    set(EXTLIBS_INCLUDE ${DEFAULT_EXTLIBS_INCLUDE})
+endif()
+if(NOT EXTLIBS_LIBS)
+    set(EXTLIBS_LIBS ${DEFAULT_EXTLIBS_LIBS})
+endif()
 
 
 # If linking against sfml shared libraries, we will copy them to BUILD DIRECTORY.
@@ -34,8 +43,8 @@ set(LIB_SFML_GRAPHICS ${SFML_DIR}/lib/${CMAKE_BUILD_TYPE}/sfml-graphics-2.dll)
 set(LIB_SFML_WINDOW ${SFML_DIR}/lib/${CMAKE_BUILD_TYPE}/sfml-window-2.dll)
 set(LIB_SFML_SYSTEM ${SFML_DIR}/lib/${CMAKE_BUILD_TYPE}/sfml-system-2.dll)
 
-# SFML source files contain extlibs needed to run. ONly relevant for static builds. shared libs will just load from
-# OS list of available shared libs.
+# SFML source files contain extlibs needed to run. ONly relevant for static builds. shared libs will just be loaded from
+# OS known shared libs directories
 if (NOT SFML_USE_SOURCE)
     set(CMAKE_INCLUDE_PATH ${CMAKE_INCLUDE_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/deps/SFML/extlibs/headers)   
     set(CMAKE_LIBRARY_PATH ${CMAKE_LIBRARY_PATH} ${CMAKE_CURRENT_SOURCE_DIR}/deps/SFML/extlibs/libs-msvc/x64)
