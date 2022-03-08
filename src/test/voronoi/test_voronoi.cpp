@@ -7,17 +7,19 @@
 #include <PixelArt/graph.h>
 #include <PixelArt/voronoi.h>
 
-
-
-
-
+enum Mode : int{
+    DISPLAY_GRAPH,
+    DISPLAY_VORONOI,
+    DISPLAY_ACTIVE_EDGES,
+    NUM_MODES
+}mode;
 
 int main(int argc, char* argv[])
 {
 	std::cout << "Starting test program on voronoi diagram" << std::endl;
     //Image contains Pixel Data
     sf::Image inputImage;
-    if (!inputImage.loadFromFile(("smw_yoshi_input.png"))) {
+    if (!inputImage.loadFromFile(("../../../../../img/smw_yoshi_input.png"))) {
         std::cout << "Failed to open image file for processing" << std::endl;
         return -1;
     }
@@ -33,7 +35,6 @@ int main(int argc, char* argv[])
     diagram.setGraph(similarity);
     diagram.createDiagram();
 
-    bool display_diagram = true;
 
     /***************** RENDERING *************************/
     // Let's setup a window
@@ -46,6 +47,10 @@ int main(int argc, char* argv[])
     bool moving = false;
 
     float zoom = 1.0f;
+
+    bool disp_background = true;
+
+    int disp_color = 0;
 
     // Retrieve the window's default view
     sf::View view = window.getDefaultView();
@@ -109,38 +114,39 @@ int main(int argc, char* argv[])
                 break;
             case sf::Event::KeyPressed:
                 if (event.key.code == sf::Keyboard::N) {
-                    display_diagram = !display_diagram;
+                    mode = static_cast<Mode>((static_cast<int>(mode) + 1) % static_cast<int>(Mode::NUM_MODES));
+                    std::cout << "Switched to mode " << mode << std::endl;
                 }
-
+                if (event.key.code == sf::Keyboard::B) {
+                    disp_background = !disp_background;
+                }
+                if (event.key.code == sf::Keyboard::C) {
+                    disp_color = (disp_color + 1) % 2;
+                }
             }
         }
 
         // Draw our simple scene
         window.clear(sf::Color::White);
         float scale = 8.0f;
-        background.setScale(sf::Vector2f(scale, scale));
-        window.draw(background);
+        if (disp_background) {
+            background.setScale(sf::Vector2f(scale, scale));
+            window.draw(background);
+        }
 
         sf::Vertex line[2];
         line[0].color = sf::Color::Red;
         line[1].color = sf::Color::Red;
-        
-        if (display_diagram) {
-            depix::diagram& d = diagram.getDiagram();
-            for (auto& vec : d) {
-                for (auto& p : vec.second) {
-                    line[0].position = scale * vec.first;
-                    line[1].position = scale * p;
-                    window.draw(line, 2, sf::Lines);
-                }
-            }
-        }
-        else {
-            auto& edges = similarity.getEdges();
+
+
+        switch (mode) {
+        case Mode::DISPLAY_GRAPH :
+        {
+            auto& graph_edges = similarity.getEdges();
             for (int i = 0; i < dim.x; i++) {
                 for (int j = 0; j < dim.y; j++) {
                     for (int k = 0; k < depix::NUM_DIR; k++) {
-                        if (edges[i][j][k]) {
+                        if (graph_edges[i][j][k]) {
                             auto dir = depix::VecDir[k];
                             line[0].position = scale * sf::Vector2f(i + 0.5f, j + 0.5f);
                             line[1].position = scale * sf::Vector2f(i + 0.5f + dir.x, j + 0.5f + dir.y);
@@ -149,7 +155,43 @@ int main(int argc, char* argv[])
                     }
                 }
             }
+            break;
         }
+        case Mode::DISPLAY_VORONOI :
+        {
+            depix::diagram& d = diagram.getDiagram();
+            for (auto& vec : d) {
+                for (auto& p : vec.second) {
+                    line[0].position = scale * vec.first;
+                    line[1].position = scale * p;
+                    window.draw(line, 2, sf::Lines);
+                }
+            }
+            break;
+        }
+        case Mode::DISPLAY_ACTIVE_EDGES :
+        {
+            depix::edge_list& active_edges = diagram.getActiveEdges();
+            for (auto& edge_color : active_edges) {
+                auto& edge = edge_color.first;
+                auto& colors = edge_color.second;
+                line[0].position = scale * edge.first;
+                line[1].position = scale * edge.second;
+                if (disp_color == 0) {
+                    line[0].color = colors.first;
+                    line[1].color = colors.first;
+
+                }
+                else {
+                    line[0].color = colors.second;
+                    line[1].color = colors.second;
+                }
+                window.draw(line, 2, sf::Lines);
+            }
+            break;
+        }
+        }
+       
 
         // ok checked.
 

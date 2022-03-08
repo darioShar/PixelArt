@@ -19,13 +19,12 @@
 namespace depix {
 
 	using voronoiCell = std::vector<Point>;
-	using graph = std::unordered_map<Point, voronoiCell>;
-
 	using voronoiCellType = uint8_t; // 8 bits
 	using CircleDir = std::pair<Direction, Direction>;
+	using diagram = std::unordered_map<Point, std::vector<Point>>;
 
-	using diagram = std::unordered_map<Point, std::vector<Point>, PointHasher>;
-
+	using edge_list_one_color = std::unordered_map<edge, sf::Color, EdgeHasher, EdgeCompare>;
+	using edge_list = std::unordered_map<edge, edge_color, EdgeHasher, EdgeCompare>;
 
 	// Going in this fashion :
 	// 0 1 2
@@ -86,12 +85,18 @@ namespace depix {
 		static CellsCalculation cellsCalculation;
 
 		// Valency of each voronoi point for collapsing
-		std::unordered_map<Point, int, PointHasher> m_valency;
+		std::unordered_map<Point, int> m_valency;
 
 		// Final diagram
 		diagram m_diagram;
 
+		// active edges
+		edge_list m_active_edges;
+
+
 		voronoiCellType extractType(const IntPoint& p) const;
+
+		void checkAndAddActiveEdge(edge_list_one_color& simple_edge, Point& pa, Point& pb, int x, int y);
 
 		void generateAccurateDiagram();
 
@@ -108,6 +113,8 @@ namespace depix {
 		void createDiagram();
 
 		diagram getDiagram();
+
+		edge_list getActiveEdges();
 
 		const PixelGraph* getGraph() { return m_graph; };
 	};

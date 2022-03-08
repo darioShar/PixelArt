@@ -9,24 +9,53 @@ namespace depix {
 	using IntPoint = sf::Vector2i;
 	using Point = sf::Vector2f;
 
-	struct PointHasher {
+	using edge_color = std::pair<sf::Color, sf::Color>;
+	using edge = std::pair<Point, Point>;
+
+	/*struct PointHasher {
 		size_t operator()(const Point& p) const
 		{
 			return ((std::hash<float>()(p.x)
 				^ (std::hash<float>()(p.y) << 1)) >> 1);
 		}
+	};*/
+
+	template<typename T1, typename T2>
+	struct PairHasher {
+		size_t operator()(const std::pair<T1, T2>& p) const
+		{
+			return ((std::hash<T1>()(p.first)
+				^ (std::hash<T2>()(p.second) << 1)) >> 1);
+		}
 	};
+
+	using EdgeHasher = PairHasher<Point, Point>;
+
+	struct EdgeCompare {
+		bool operator()(const edge& e1, const edge& e2) const {
+			return (e1 == e2) || ((e1.first == e2.second) && (e1.second == e2.first));
+		}
+	};
+
+
+	/*template <class T1, class T2>
+	struct PairHasher
+	{
+		std::size_t operator() (const std::pair<T1, T2>& pair) const {
+			return std::hash<T1>()(pair.first) ^ std::hash<T2>()(pair.second);
+		}
+	};*/
 
 	// in clockwise order (important for later, in voronoi !!!)
 	enum Direction : int {
 		TOP_LEFT = 0,
-		TOP,
-		TOP_RIGHT,
-		RIGHT,
-		BOTTOM_RIGHT,
-		BOTTOM,
-		BOTTOM_LEFT,
 		LEFT,
+		BOTTOM_LEFT,
+		BOTTOM,
+		BOTTOM_RIGHT,
+		RIGHT,
+		TOP_RIGHT,
+		TOP,
 		CENTER
 	};
 #define NUM_DIR Direction::CENTER
@@ -34,13 +63,13 @@ namespace depix {
 	const std::array<IntPoint, NUM_DIR + 1> VecDir
 	{
 		sf::Vector2i(-1,-1),
-		sf::Vector2i(0,-1),
-		sf::Vector2i(1,-1),
-		sf::Vector2i(1,0),
-		sf::Vector2i(1,1),
-		sf::Vector2i(0,1),
-		sf::Vector2i(-1,1),
 		sf::Vector2i(-1,0),
+		sf::Vector2i(-1,1),
+		sf::Vector2i(0,1),
+		sf::Vector2i(1,1),
+		sf::Vector2i(1,0),
+		sf::Vector2i(1,-1),
+		sf::Vector2i(0,-1),
 		sf::Vector2i(0,0),
 	};
 
@@ -96,4 +125,5 @@ namespace std {
 				^ (hash<float>()(p.y) << 1)) >> 1);
 		}
 	};
+	
 }

@@ -108,6 +108,7 @@ namespace depix {
 
 	void VoronoiDiagram::setGraph(const PixelGraph& graph) {
 		m_graph = &graph;
+		m_voronoiPoints.clear();
 		sf::Vector2u dim = graph.getImage().getSize();
 
 		for (int i = 0; i < dim.x; i++)
@@ -162,8 +163,26 @@ namespace depix {
 		}
 	}
 
+	void VoronoiDiagram::checkAndAddActiveEdge(edge_list_one_color& simple_edge, Point& pa, Point& pb, int x, int y) {
+		auto& color = m_graph->getImage().getPixel(x, y);;
+		auto& it = simple_edge.find(edge(pa, pb));
+		if (it != simple_edge.end()) {
+			// we have found our 2 colors.
+			// if dissimlar enough ...
+			// to do
+			m_active_edges[edge(pa, pb)] = edge_color((*it).second, color);
+		}
+		else {
+			simple_edge[edge(pa, pb)] = color;
+		}
+	}
+
+
+
 	void VoronoiDiagram::simplifyDiagram() {
 		sf::Vector2u dim = m_graph->getImage().getSize();
+		edge_list_one_color simple_edge;
+
 		for (int x = 0; x < dim.x; x++) {
 			for (int y = 0; y < dim.y; y++) {
 				// create diagram, removing valence 2
@@ -175,12 +194,8 @@ namespace depix {
 					auto& pa = m_voronoiPoints[x][y][a];
 					auto& pb = m_voronoiPoints[x][y][b];
 					if (m_valency[pb] != 2 ) {
-						if (m_diagram.find(pa) == m_diagram.end()) {
-							m_diagram[pa] = std::vector<Point>({ pb });
-						}
-						else {
-							m_diagram[pa].push_back(pb);
-						}
+						m_diagram[pa].push_back(pb);
+						checkAndAddActiveEdge(simple_edge, pa, pb, x, y);
 						a = b;
 						b = (b + 1) % size;
 					}
@@ -188,13 +203,20 @@ namespace depix {
 						b = (b + 1) % size;
 					}
 				} while (b != 0);
-				m_diagram[m_voronoiPoints[x][y][a]].push_back(m_voronoiPoints[x][y][b]);
+				auto& pa = m_voronoiPoints[x][y][a];
+				auto& pb = m_voronoiPoints[x][y][b];
+				m_diagram[pa].push_back(pb);
+				checkAndAddActiveEdge(simple_edge, pa, pb, x, y);
+
 			}
 		}
 	}
 
 	void VoronoiDiagram::createDiagram()
 	{
+		m_valency.clear();
+		m_diagram.clear();
+		m_active_edges.clear();
 		generateAccurateDiagram();
 		simplifyDiagram();
 	}
@@ -203,6 +225,9 @@ namespace depix {
 		return m_diagram;
 	}
 
+	edge_list VoronoiDiagram::getActiveEdges() {
+		return m_active_edges;
+	}
 
 }
 
