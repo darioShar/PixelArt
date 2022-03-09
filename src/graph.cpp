@@ -7,12 +7,12 @@
 namespace depix {
 #define DECLARE_SQUARE_VARS(top_left) square s = get_square(top_left); IntPoint& bottom_right = s[1]; IntPoint& bottom_left = s[2]; IntPoint& top_right = s[3];
 
-	PixelGraph::PixelGraph(const sf::Image& image) : m_image(image), m_colorOp(image)
+	PixelGraph::PixelGraph(const YUVGraphParam& p) : m_image(p.image), m_test_similarity(p)
 	{
 		fill_edges();
 	}
 
-	PixelGraph::PixelGraph(const PixelGraph& g) : m_image(g.getImage()), m_colorOp(g.getImage())
+	PixelGraph::PixelGraph(const PixelGraph& g) : m_image(g.m_image), m_test_similarity(g.m_test_similarity.getParam())
 	{
 		m_edges = g.getEdges();
 	}
@@ -34,7 +34,7 @@ namespace depix {
 					IntPoint adj_pixel = current_pixel + VecDir[k];
 					// if both pixel are sufficiently similar, weight = 1
 					if (isValid(adj_pixel, dim))
-						m_edges[i][j][k] = m_colorOp[current_pixel].similar(m_colorOp[adj_pixel]);
+						m_edges[i][j][k] = m_test_similarity(current_pixel, adj_pixel);
 				}
 			}
 		}

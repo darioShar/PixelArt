@@ -99,7 +99,9 @@ namespace depix {
 	// declare
 	CellsCalculation VoronoiDiagram::cellsCalculation;
 
-	VoronoiDiagram::VoronoiDiagram() : m_graph(nullptr)
+	VoronoiDiagram::VoronoiDiagram(EdgeDissimilarityParam p) : 
+		m_graph(nullptr),
+		m_test_visibility(p)
 	{
 		// instantiate calculations
 		(void)cellsCalculation;
@@ -118,10 +120,6 @@ namespace depix {
 		}
 	}
 
-	const possible_cells_list VoronoiDiagram::getPossibleVoronoiCells() const {
-		return cellsCalculation.possibleCells;
-	}
-
 
 	voronoiCellType VoronoiDiagram::extractType(const IntPoint& p) const {
 		// warning : for_each takes a copy of the functor... so better with lambda function and reference
@@ -137,20 +135,16 @@ namespace depix {
 
 	void VoronoiDiagram::generateAccurateDiagram() {
 		sf::Vector2u dim = m_graph->getImage().getSize();
+
 		for (int x = 0; x < dim.x; x++) {
 			for (int y = 0; y < dim.y; y++) {
+				sf::Color color = m_graph->getImage().getPixel(x, y);
 				voronoiCellType type = extractType(IntPoint(x, y));
-				if (!isOnBounds(IntPoint(x, y), dim) && !checkCellType(type)) {
-					std::cout << "Error in similarity graph : " << x << ", " << y <<  std::endl;
-					std::cout << "configuration : ";
-					for (int i = 0; i < 8; i++) {
-						std::cout << !!(type & 1 << i) << " : ";
-					}
-					std::cout << std::endl;
-				}
 				voronoiCell cell = cellsCalculation.possibleCells[type];
-				for (auto& p : cell) p += Point(x + 0.5, y + 0.5);
+				// move and add point
+				for (auto& p :cell) p += Point(x + 0.5, y + 0.5);
 				m_voronoiPoints[x].push_back(cell);
+
 				// Populate hash table 
 				for (auto& p : m_voronoiPoints[x][y]) {
 					if (m_valency.find(p) == m_valency.end())
@@ -163,29 +157,30 @@ namespace depix {
 		}
 	}
 
-	void VoronoiDiagram::checkAndAddActiveEdge(edge_list_one_color& simple_edge, Point& pa, Point& pb, int x, int y) {
-		auto& color = m_graph->getImage().getPixel(x, y);;
-		auto& it = simple_edge.find(edge(pa, pb));
-		if (it != simple_edge.end()) {
-			// we have found our 2 colors.
-			// if dissimlar enough ...
-			// to do
-			m_active_edges[edge(pa, pb)] = edge_color((*it).second, color);
+	void VoronoiDiagram::checkAndAddActiveEdge(Point& pa, Point& pb, int x, int y) {
+		auto& color = m_graph->getImage().getPixel(x, y);
+		auto e = Edge(pa, pb);
+		auto& it = m_active_edges.find(e);
+		if (it == m_active_edges.end()) {
+			// add the edge
+			m_active_edges[e] = { color };
 		}
 		else {
-			simple_edge[edge(pa, pb)] = color;
+			// If one color has already been added, check for dissimilarity
+			// and determine visibility
+			e.v = m_test_visibility((*it).second[0], color);
+			if (e.v != None)
+				m_active_edges[e].push_back(color);
 		}
 	}
 
-
-
 	void VoronoiDiagram::simplifyDiagram() {
 		sf::Vector2u dim = m_graph->getImage().getSize();
-		edge_list_one_color simple_edge;
+
 
 		for (int x = 0; x < dim.x; x++) {
 			for (int y = 0; y < dim.y; y++) {
-				// create diagram, removing valence 2
+				// create diagram, not adding valence 2 points
 				int a = 0;
 				int b = 1;
 				int size = m_voronoiPoints[x][y].size();
@@ -195,22 +190,38 @@ namespace depix {
 					auto& pb = m_voronoiPoints[x][y][b];
 					if (m_valency[pb] != 2 ) {
 						m_diagram[pa].push_back(pb);
-						checkAndAddActiveEdge(simple_edge, pa, pb, x, y);
+						checkAndAddActiveEdge(pa, pb, x, y);
+
 						a = b;
 						b = (b + 1) % size;
 					}
 					else {
+						m_active_edges.erase(Edge(pa, pb));
 						b = (b + 1) % size;
 					}
 				} while (b != 0);
 				auto& pa = m_voronoiPoints[x][y][a];
 				auto& pb = m_voronoiPoints[x][y][b];
 				m_diagram[pa].push_back(pb);
-				checkAndAddActiveEdge(simple_edge, pa, pb, x, y);
+				checkAndAddActiveEdge(pa, pb, x, y);
+			}
+		}
+	}
+
+	void VoronoiDiagram::deleteNonActiveEdges() {
+		// delete non active edges
+		auto& iter = m_active_edges.begin();
+		while (iter != m_active_edges.end()) {
+			if ((*iter).second.size() != 2) {
+				iter = m_active_edges.erase(iter);
+			}
+			else {
+				iter++;
 
 			}
 		}
 	}
+
 
 	void VoronoiDiagram::createDiagram()
 	{
@@ -219,6 +230,11 @@ namespace depix {
 		m_active_edges.clear();
 		generateAccurateDiagram();
 		simplifyDiagram();
+		deleteNonActiveEdges();
+	}
+
+	const possible_cells_list VoronoiDiagram::getPossibleVoronoiCells() const {
+		return cellsCalculation.possibleCells;
 	}
 
 	diagram VoronoiDiagram::getDiagram() {
@@ -230,30 +246,3 @@ namespace depix {
 	}
 
 }
-
-
-
-/*void calculate_constants() {
-		std::copy(node_parcours.begin(), node_parcours.end(), VecDir.begin());
-		node_parcours[8] = IntPoint(0, 0);
-		edges_parcours = std::array<CircleDir, 9>( {
-			std::make_pair<Direction, Direction>(RIGHT, BOTTOM),
-				std::make_pair<Direction, Direction>(RIGHT, LEFT),
-				std::make_pair<Direction, Direction>(BOTTOM, LEFT),
-				std::make_pair<Direction, Direction>(BOTTOM, TOP),
-				std::make_pair<Direction, Direction>(LEFT, TOP),
-				std::make_pair<Direction, Direction>(LEFT, RIGHT),
-				std::make_pair<Direction, Direction>(TOP, RIGHT),
-				std::make_pair<Direction, Direction>(TOP, BOTTOM),
-				std::make_pair<Direction, Direction>(TOP_LEFT, LEFT)
-		});
-
-		for (int i = 0; i < 9; i++) {
-			node_index_start[i] = std::accumulate(edges_parcours.begin(), edges_parcours.begin() + i,
-				0, [](CircleDir& range) {
-					return range.second > range.first ?
-						range.second - range.first :
-						(NUM_DIR - range.first) + range.second + 1;
-				});
-		}
-	}*/

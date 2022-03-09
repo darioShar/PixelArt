@@ -127,7 +127,7 @@ int main(int argc, char* argv[])
         }
 
         // Draw our simple scene
-        window.clear(sf::Color::White);
+        window.clear(sf::Color(200,200,200));
         float scale = 8.0f;
         if (disp_background) {
             background.setScale(sf::Vector2f(scale, scale));
@@ -174,18 +174,15 @@ int main(int argc, char* argv[])
             depix::edge_list& active_edges = diagram.getActiveEdges();
             for (auto& edge_color : active_edges) {
                 auto& edge = edge_color.first;
+                /*if (&(*active_edges.find(depix::Edge(edge.p2, edge.p1))) != &edge_color) {
+                    std::cout << "Problem on edges hash table" <<std::endl;
+                }*/
                 auto& colors = edge_color.second;
-                line[0].position = scale * edge.first;
-                line[1].position = scale * edge.second;
-                if (disp_color == 0) {
-                    line[0].color = colors.first;
-                    line[1].color = colors.first;
+                line[0].position = scale * edge.p1;
+                line[1].position = scale * edge.p2;
+                line[0].color = colors[disp_color];
+                line[1].color = colors[disp_color];
 
-                }
-                else {
-                    line[0].color = colors.second;
-                    line[1].color = colors.second;
-                }
                 window.draw(line, 2, sf::Lines);
             }
             break;

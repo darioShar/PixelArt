@@ -9,10 +9,7 @@
 * Collapsing 2-valence nodes : std::unordered_map, same on memory, constant access time, 
 * no need to aprcours it and we prefer accessing element by its position in grid. 
 * 
-* Better stragey : simplified voronoi cell is determined locally by connections in the 3*3 grid
-* centered on evaluated node. We first compute all possible combinations etc; Bit complicated. Must
-* do it statically. First, simple strategy.
-* We'll keep first strategy for nodes on extremities, not contained in 3*3 grids.
+* Computing on beginning of program through static varibale all possible cell variations.
 
 */
 
@@ -23,8 +20,9 @@ namespace depix {
 	using CircleDir = std::pair<Direction, Direction>;
 	using diagram = std::unordered_map<Point, std::vector<Point>>;
 
-	using edge_list_one_color = std::unordered_map<edge, sf::Color, EdgeHasher, EdgeCompare>;
-	using edge_list = std::unordered_map<edge, edge_color, EdgeHasher, EdgeCompare>;
+	using diagram = std::unordered_map<Point, std::vector<Point>>;
+	using edge_list = std::unordered_map<Edge, std::vector<sf::Color>>;
+
 
 	// Going in this fashion :
 	// 0 1 2
@@ -93,17 +91,20 @@ namespace depix {
 		// active edges
 		edge_list m_active_edges;
 
+		ColorImageOp<TestEdgeVisibility> m_test_visibility;
 
 		voronoiCellType extractType(const IntPoint& p) const;
 
-		void checkAndAddActiveEdge(edge_list_one_color& simple_edge, Point& pa, Point& pb, int x, int y);
+		void checkAndAddActiveEdge(Point& pa, Point& pb, int x, int y);
 
 		void generateAccurateDiagram();
 
 		void simplifyDiagram();
 
+		void deleteNonActiveEdges();
+
 	public:
-		VoronoiDiagram();
+		VoronoiDiagram(EdgeDissimilarityParam p = EdgeDissimilarityParam());
 
 		void setGraph(const PixelGraph& graph);
 
