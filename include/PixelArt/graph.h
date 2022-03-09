@@ -25,7 +25,7 @@ namespace depix {
 	{
 		const sf::Image& m_image;
 
-		const ColorImageOp m_colorOp;
+		const ColorImageOp<TestYUVGraph> m_test_similarity;
 
 		// edges[i][j][k] -> denotes whether there is a an edge from (i,j) in kth direction in the graph
 		graph_edges m_edges;
@@ -64,7 +64,7 @@ namespace depix {
 		void islands_heuristic(const IntPoint& top_left);
 
 	public:
-		PixelGraph(const sf::Image& im);
+		PixelGraph(const YUVGraphParam& p);
 		PixelGraph(const PixelGraph& g);
 
 		void planarize();
