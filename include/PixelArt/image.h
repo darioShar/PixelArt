@@ -39,6 +39,32 @@ namespace depix {
 		}
 	};
 
+	template<typename T1, typename T2>
+	struct PairHasher {
+		size_t operator()(const std::pair<T1, T2>& p) const
+		{
+			return ((std::hash<T1>()(p.first)
+				^ (std::hash<T2>()(p.second) << 1)) >> 1);
+		}
+	};
+
+	using EdgeHasher = PairHasher<Point, Point>;
+
+	struct EdgeCompare {
+		bool operator()(const edge& e1, const edge& e2) const {
+			return (e1 == e2) || ((e1.first == e2.second) && (e1.second == e2.first));
+		}
+	};
+
+
+	/*template <class T1, class T2>
+	struct PairHasher
+	{
+		std::size_t operator() (const std::pair<T1, T2>& pair) const {
+			return std::hash<T1>()(pair.first) ^ std::hash<T2>()(pair.second);
+		}
+	};*/
+
 	// in clockwise order (important for later, in voronoi !!!)
 	enum Direction : int {
 		TOP_LEFT = 0,
@@ -211,6 +237,5 @@ namespace std {
 		{
 			return depix::PairHasher<depix::Point, depix::Point>()(std::pair(e.p1, e.p2));
 		}
-	};
-	
+	};	
 }

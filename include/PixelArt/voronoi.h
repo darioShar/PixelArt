@@ -18,10 +18,11 @@ namespace depix {
 	using voronoiCell = std::vector<Point>;
 	using voronoiCellType = uint8_t; // 8 bits
 	using CircleDir = std::pair<Direction, Direction>;
+	using diagram = std::unordered_map<Point, std::vector<Point>>;
 
-	// diagram is adjacency list, edges will be a hash map of determined edges.
 	using diagram = std::unordered_map<Point, std::vector<Point>>;
 	using edge_list = std::unordered_map<Edge, std::vector<sf::Color>>;
+
 
 	// Going in this fashion :
 	// 0 1 2

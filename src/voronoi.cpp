@@ -177,6 +177,7 @@ namespace depix {
 	void VoronoiDiagram::simplifyDiagram() {
 		sf::Vector2u dim = m_graph->getImage().getSize();
 
+
 		for (int x = 0; x < dim.x; x++) {
 			for (int y = 0; y < dim.y; y++) {
 				// create diagram, not adding valence 2 points
@@ -190,6 +191,7 @@ namespace depix {
 					if (m_valency[pb] != 2 ) {
 						m_diagram[pa].push_back(pb);
 						checkAndAddActiveEdge(pa, pb, x, y);
+
 						a = b;
 						b = (b + 1) % size;
 					}
@@ -215,6 +217,7 @@ namespace depix {
 			}
 			else {
 				iter++;
+
 			}
 		}
 	}

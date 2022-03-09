@@ -182,6 +182,7 @@ int main(int argc, char* argv[])
                 line[1].position = scale * edge.p2;
                 line[0].color = colors[disp_color];
                 line[1].color = colors[disp_color];
+
                 window.draw(line, 2, sf::Lines);
             }
             break;
