@@ -1,30 +1,36 @@
-#include <PixelArt/graph.h>
+#include <PixelArt/pixel_graph.h>
 #include <utility>
 #include <algorithm>
 #include <numeric>
 #include <stack>
 
-namespace depix {
+namespace pa {
+
+
 #define DECLARE_SQUARE_VARS(top_left) square s = get_square(top_left); IntPoint& bottom_right = s[1]; IntPoint& bottom_left = s[2]; IntPoint& top_right = s[3];
 
-	PixelGraph::PixelGraph(const YUVGraphParam& p) : m_image(p.image), m_test_similarity(p)
+	PixelGraph::PixelGraph(const PixelGraphParam& p) : dim(p.image.getSize()), m_test_similarity(p)
 	{
-		fill_edges();
+		init_graph();
 	}
 
-	PixelGraph::PixelGraph(const PixelGraph& g) : m_image(g.m_image), m_test_similarity(g.m_test_similarity.getParam())
+	PixelGraph::PixelGraph(PixelGraphParam&& p) : dim(p.image.getSize()), m_test_similarity(p)
 	{
-		m_edges = g.getEdges();
+		init_graph();
 	}
 
 
-	void PixelGraph::fill_edges() {
-		sf::Vector2u dim = m_image.getSize();
+	PixelGraph::PixelGraph(const PixelGraph& g) : m_test_similarity(g.m_test_similarity.getParam())
+	{
+		m_graph = g.getGraph();
+	}
 
+
+	void PixelGraph::init_graph() {
 		//Preallocating structures, initialize to zero
 		const weight_per_dir temp_wpd = {}; // initialize to zero
 		const std::vector< weight_per_dir > temp_vec(dim.y, temp_wpd);
-		m_edges.resize(dim.x, temp_vec);
+		m_graph.resize(dim.x, temp_vec);
 
 		// Adding edge for pixels with similar colors
 		for (int i = 0; i < dim.x; i++) {
@@ -34,7 +40,7 @@ namespace depix {
 					IntPoint adj_pixel = current_pixel + VecDir[k];
 					// if both pixel are sufficiently similar, weight = 1
 					if (isValid(adj_pixel, dim))
-						m_edges[i][j][k] = m_test_similarity(current_pixel, adj_pixel);
+						m_graph[i][j][k] = m_test_similarity(current_pixel, adj_pixel);
 				}
 			}
 		}
@@ -60,7 +66,6 @@ namespace depix {
 
 	bool PixelGraph::check_additional_connection_and_remove_trivial_cross(const IntPoint& top_left)
 	{
-		sf::Vector2u dim = m_image.getSize();
 		DECLARE_SQUARE_VARS(top_left)
 
 		int test = edge(top_left, Direction::BOTTOM)
@@ -82,8 +87,6 @@ namespace depix {
 
 	int PixelGraph::valence(const IntPoint& p)
 	{
-		sf::Vector2u dim = m_image.getSize();
-
 		//Count the edges around the pixel
 		int cnt = 0;
 		for (int i = 0; i < NUM_DIR; i++)
@@ -98,12 +101,12 @@ namespace depix {
 		DECLARE_SQUARE_VARS(top_left)
 
 		int left_diag = 5 * (valence(top_left) == 1 + valence(bottom_right) == 1);
-		m_edges[top_left.x][top_left.y][Direction::BOTTOM_RIGHT] += left_diag;
-		m_edges[bottom_right.x][bottom_right.y][Direction::TOP_LEFT] += left_diag;
+		m_graph[top_left.x][top_left.y][Direction::BOTTOM_RIGHT] += left_diag;
+		m_graph[bottom_right.x][bottom_right.y][Direction::TOP_LEFT] += left_diag;
 
 		int right_diag = 5 * (valence(top_right) == 1 + valence(bottom_left) == 1);
-		m_edges[top_right.x][top_right.y][Direction::BOTTOM_LEFT] += right_diag;
-		m_edges[bottom_left.x][bottom_left.y][Direction::TOP_RIGHT] += right_diag;
+		m_graph[top_right.x][top_right.y][Direction::BOTTOM_LEFT] += right_diag;
+		m_graph[bottom_left.x][bottom_left.y][Direction::TOP_RIGHT] += right_diag;
 
 	}
 
@@ -129,7 +132,7 @@ namespace depix {
 			curve_length++;
 			// finding next direction. Cannot be opposite to old direction d !
 			int new_dir = 0;
-			std::find_if(m_edges[a.x][a.y].begin(), m_edges[a.x][a.y].end(),
+			std::find_if(m_graph[a.x][a.y].begin(), m_graph[a.x][a.y].end(),
 				[this, &actual_dir, &new_dir](int& dir_weight) mutable
 				{return !are_dir_opposite(actual_dir, static_cast<Direction>(new_dir++)) && dir_weight > 0; });
 			actual_dir = static_cast<Direction>(--new_dir);
@@ -142,7 +145,7 @@ namespace depix {
 			curve_length++;
 			// finding next direction. Cannot be opposite to old direction d !
 			int new_dir = 0;
-			std::find_if(m_edges[b.x][b.y].begin(), m_edges[b.x][b.y].end(),
+			std::find_if(m_graph[b.x][b.y].begin(), m_graph[b.x][b.y].end(),
 				[this, &actual_dir, &new_dir](int& dir_weight) mutable
 				{return !are_dir_opposite(actual_dir, static_cast<Direction>(new_dir++)) && dir_weight > 0; });
 			actual_dir = static_cast<Direction>(--new_dir);
@@ -160,13 +163,13 @@ namespace depix {
 
 		// top_left to bottom_right
 		int left_curve_length = count_curve_edges(top_left, BOTTOM_RIGHT);
-		m_edges[top_left.x][top_left.y][Direction::BOTTOM_RIGHT] += left_curve_length;
-		m_edges[bottom_right.x][bottom_right.y][Direction::TOP_LEFT] += left_curve_length;
+		m_graph[top_left.x][top_left.y][Direction::BOTTOM_RIGHT] += left_curve_length;
+		m_graph[bottom_right.x][bottom_right.y][Direction::TOP_LEFT] += left_curve_length;
 
 		// top_right to bottom_left
 		int right_curve_length = count_curve_edges(top_right, BOTTOM_LEFT);
-		m_edges[top_right.x][top_right.y][Direction::BOTTOM_LEFT] += right_curve_length;
-		m_edges[bottom_left.x][bottom_left.y][Direction::TOP_RIGHT] += right_curve_length;
+		m_graph[top_right.x][top_right.y][Direction::BOTTOM_LEFT] += right_curve_length;
+		m_graph[bottom_left.x][bottom_left.y][Direction::TOP_RIGHT] += right_curve_length;
 
 	}
 
@@ -192,7 +195,7 @@ namespace depix {
 			{
 				//See in all directions, scan for points that are in the not yet visited, 
 				// in the 8x8 box, and have an edge from the current point.
-				if (!m_edges[point.x][point.y][i])
+				if (!m_graph[point.x][point.y][i])
 					continue;
 
 				IntPoint nextPoint(point + VecDir[i]);
@@ -209,7 +212,6 @@ namespace depix {
 
 	void PixelGraph::sparse_pixels_heuristic(const IntPoint& top_left)
 	{
-		sf::Vector2u dim = m_image.getSize();
 		DECLARE_SQUARE_VARS(top_left)
 
 		int grid[8][8] = { 0 };
@@ -232,21 +234,20 @@ namespace depix {
 
 		// end
 
-		m_edges[top_left.x][top_left.y][Direction::BOTTOM_RIGHT] += componentA;
-		m_edges[bottom_right.x][bottom_right.y][Direction::TOP_LEFT] += componentA;
+		m_graph[top_left.x][top_left.y][Direction::BOTTOM_RIGHT] += componentA;
+		m_graph[bottom_right.x][bottom_right.y][Direction::TOP_LEFT] += componentA;
 
-		m_edges[top_right.x][top_right.y][Direction::BOTTOM_LEFT] += componentB;
-		m_edges[bottom_left.x][bottom_left.y][Direction::TOP_RIGHT] += componentB;
+		m_graph[top_right.x][top_right.y][Direction::BOTTOM_LEFT] += componentB;
+		m_graph[bottom_left.x][bottom_left.y][Direction::TOP_RIGHT] += componentB;
 	}
 
 
 
-	void PixelGraph::planarize()
+	void PixelGraph::compute()
 	{
 		//For Internal Pixels, process via heuristic if edges are crossing
 		//A Pixel is the topLeft of a 2x2 box
-		sf::Vector2u dim = m_image.getSize();
-
+		// 
 		//Take current pixel as top-left of a 4 pixel square and check whether the colors are same in all
 		for (int i = 0; i < dim.x - 1; i++) {
 			for (int j = 0; j < dim.y - 1; j++)
@@ -264,12 +265,12 @@ namespace depix {
 					sparse_pixels_heuristic(top_left);
 
 					//Remove lighter edge, or both if equality (no else if)
-					if (m_edges[top_left.x][top_left.y][BOTTOM_RIGHT] <= m_edges[top_right.x][top_right.y][BOTTOM_LEFT])
+					if (m_graph[top_left.x][top_left.y][BOTTOM_RIGHT] <= m_graph[top_right.x][top_right.y][BOTTOM_LEFT])
 					{
 						delete_edge(top_left, BOTTOM_RIGHT);
 						delete_edge(bottom_right, TOP_LEFT);
 					}
-					if (m_edges[top_left.x][top_left.y][BOTTOM_RIGHT] >= m_edges[top_right.x][top_right.y][BOTTOM_LEFT])
+					if (m_graph[top_left.x][top_left.y][BOTTOM_RIGHT] >= m_graph[top_right.x][top_right.y][BOTTOM_LEFT])
 					{
 						delete_edge(top_right, BOTTOM_LEFT);
 						delete_edge(bottom_left, TOP_RIGHT);
@@ -278,5 +279,29 @@ namespace depix {
 				}
 			}
 		}
+	}
+
+
+	// Returns true if there is an edge from (x,y) in kth direction
+	bool PixelGraph::edge(int x, int y, Direction k) const
+	{
+		return m_graph[x][y][static_cast<int>(k)] != 0;
+	}
+
+	bool PixelGraph::edge(const IntPoint& p, Direction k) const
+	{
+		if (isValid(p, dim))
+			return edge(p.x, p.y, k);
+		return false;
+	}
+
+	// Deletes edge
+	void PixelGraph::delete_edge(int x, int y, Direction k) {
+		m_graph[x][y][static_cast<int>(k)] = 0;
+	}
+
+	void PixelGraph::delete_edge(const IntPoint& p, Direction k)
+	{
+		delete_edge(p.x, p.y, k);
 	}
 }

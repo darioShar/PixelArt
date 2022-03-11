@@ -4,7 +4,7 @@
 #include <utility>
 #include <vector>
 #include <SFML/Graphics.hpp>
-#include <PixelArt/graph.h>
+#include <PixelArt/pixel_graph.h>
 
 
 int main(int argc, char* argv[])
@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
 	std::cout << "Starting test program on graph" << std::endl;
 	//Image contains Pixel Data
 	sf::Image inputImage;
-	if (!inputImage.loadFromFile(("smw_yoshi_input.png"))) {
+	if (!inputImage.loadFromFile(("../../../../../img/smw_yoshi_input.png"))) {
 		std::cout << "Failed to open image file for processing" << std::endl;
 		return -1;
 	}
@@ -20,9 +20,10 @@ int main(int argc, char* argv[])
     sf::Vector2u dim = inputImage.getSize();
 
 	//Create Similarity Graph
-	depix::PixelGraph similarity(inputImage);
+    auto param = pa::PixelGraphParam(inputImage);
+	pa::PixelGraph sim = pa::PixelGraph(pa::PixelGraphParam(inputImage));
 	//Planarize the graph
-	similarity.planarize();
+	sim.compute();
 
 
 
@@ -116,12 +117,12 @@ int main(int argc, char* argv[])
         line[1].color = sf::Color::Red;
 
         
-        auto& edges = similarity.getEdges();
+        auto& edges = sim.getGraph();
         for (int i = 0; i < dim.x; i++) {
             for (int j = 0; j < dim.y; j++) {
-                for (int k = 0; k < depix::NUM_DIR; k++) {
+                for (int k = 0; k < pa::NUM_DIR; k++) {
                     if (edges[i][j][k]) {
-                        auto dir = depix::VecDir[k];
+                        auto dir = pa::VecDir[k];
                         line[0].position = scale * sf::Vector2f(i + 0.5f, j + 0.5f);
                         line[1].position = scale * sf::Vector2f(i + 0.5f + dir.x, j + 0.5f + dir.y);
                         window.draw(line, 2, sf::Lines);

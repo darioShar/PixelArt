@@ -4,8 +4,8 @@
 #include <utility>
 #include <vector>
 #include <SFML/Graphics.hpp>
-#include <PixelArt/graph.h>
-#include <PixelArt/voronoi.h>
+#include <PixelArt/pixel_graph.h>
+#include <PixelArt/voronoi_diagram.h>
 
 enum Mode : int{
     DISPLAY_GRAPH,
@@ -27,13 +27,14 @@ int main(int argc, char* argv[])
     sf::Vector2u dim = inputImage.getSize();
 
     //Create Similarity Graph
-    depix::PixelGraph similarity(inputImage);
+    auto param = pa::PixelGraphParam(inputImage);
+    pa::PixelGraph similarity(param);
     //Planarize the graph
-    similarity.planarize();
+    similarity.compute();
 
-    depix::VoronoiDiagram diagram;
+    pa::VoronoiDiagram diagram;
     diagram.setGraph(similarity);
-    diagram.createDiagram();
+    diagram.compute();
 
 
     /***************** RENDERING *************************/
@@ -142,12 +143,12 @@ int main(int argc, char* argv[])
         switch (mode) {
         case Mode::DISPLAY_GRAPH :
         {
-            auto& graph_edges = similarity.getEdges();
+            auto& graph_edges = similarity.getGraph();
             for (int i = 0; i < dim.x; i++) {
                 for (int j = 0; j < dim.y; j++) {
-                    for (int k = 0; k < depix::NUM_DIR; k++) {
+                    for (int k = 0; k < pa::NUM_DIR; k++) {
                         if (graph_edges[i][j][k]) {
-                            auto dir = depix::VecDir[k];
+                            auto dir = pa::VecDir[k];
                             line[0].position = scale * sf::Vector2f(i + 0.5f, j + 0.5f);
                             line[1].position = scale * sf::Vector2f(i + 0.5f + dir.x, j + 0.5f + dir.y);
                             window.draw(line, 2, sf::Lines);
@@ -159,7 +160,7 @@ int main(int argc, char* argv[])
         }
         case Mode::DISPLAY_VORONOI :
         {
-            depix::diagram& d = diagram.getDiagram();
+            const pa::diagram& d = diagram.getDiagram();
             for (auto& vec : d) {
                 for (auto& p : vec.second) {
                     line[0].position = scale * vec.first;
@@ -171,13 +172,13 @@ int main(int argc, char* argv[])
         }
         case Mode::DISPLAY_ACTIVE_EDGES :
         {
-            depix::edge_list& active_edges = diagram.getActiveEdges();
+            const pa::edge_list& active_edges = diagram.getActiveEdges();
             for (auto& edge_color : active_edges) {
                 auto& edge = edge_color.first;
-                /*if (&(*active_edges.find(depix::Edge(edge.p2, edge.p1))) != &edge_color) {
+                /*if (&(*active_edges.find(pa::Edge(edge.p2, edge.p1))) != &edge_color) {
                     std::cout << "Problem on edges hash table" <<std::endl;
                 }*/
-                auto& colors = edge_color.second;
+                auto& colors = edge_color.second.colors;
                 line[0].position = scale * edge.p1;
                 line[1].position = scale * edge.p2;
                 line[0].color = colors[disp_color];
