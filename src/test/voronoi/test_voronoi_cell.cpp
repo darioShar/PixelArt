@@ -4,8 +4,8 @@
 #include <utility>
 #include <vector>
 #include <SFML/Graphics.hpp>
-#include <PixelArt/graph.h>
-#include <PixelArt/voronoi.h>
+#include <PixelArt/pixel_graph.h>
+#include <PixelArt/voronoi_diagram.h>
 
 
 
@@ -17,9 +17,9 @@ int main(int argc, char* argv[])
 	std::cout << "Starting test program on voronoi cell" << std::endl;
 	
 
-    depix::VoronoiDiagram diagram;
-    const depix::possible_cells_list cells = diagram.getPossibleVoronoiCells();
-    depix::voronoiCellType type = 0;
+    pa::VoronoiDiagram diagram;
+    const pa::possible_cells_list& cells = diagram.getPossibleVoronoiCells();
+    pa::voronoiCellType type = 0;
 
     /***************** RENDERING *************************/
     // Let's setup a window
@@ -116,7 +116,7 @@ int main(int argc, char* argv[])
         line[0].color = sf::Color::Red;
         line[1].color = sf::Color::Red;
         
-        /*depix::diagram& d = diagram.getDiagram();
+        /*pa::diagram& d = diagram.getDiagram();
         for (auto& vec : d) {
             for (auto& p : vec.second) {
                 line[0].position = scale * vec.first;

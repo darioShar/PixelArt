@@ -1,9 +1,9 @@
-#include <PixelArt/voronoi.h>
+#include <PixelArt/voronoi_diagram.h>
 #include <iostream>
 #include <utility>
 #include <numeric>
 
-namespace depix {
+namespace pa {
 
 	// VORONOI DIAGRAM CALCULATION
 		// Each corner can do three things:
@@ -99,6 +99,9 @@ namespace depix {
 	// declare
 	CellsCalculation VoronoiDiagram::cellsCalculation;
 
+
+
+
 	VoronoiDiagram::VoronoiDiagram(EdgeDissimilarityParam p) : 
 		m_graph(nullptr),
 		m_test_visibility(p)
@@ -118,6 +121,11 @@ namespace depix {
 			std::vector<voronoiCell> v2(0);
 			m_voronoiPoints.push_back(v2);
 		}
+	}
+
+	// Give new set of parameter for active edge determination
+	void VoronoiDiagram::setParam(const EdgeDissimilarityParam& p) {
+		m_test_visibility.getParam() = p;
 	}
 
 
@@ -163,14 +171,14 @@ namespace depix {
 		auto& it = m_active_edges.find(e);
 		if (it == m_active_edges.end()) {
 			// add the edge
-			m_active_edges[e] = { color };
+			m_active_edges[e].colors = { color };
 		}
 		else {
 			// If one color has already been added, check for dissimilarity
 			// and determine visibility
-			e.v = m_test_visibility((*it).second[0], color);
-			if (e.v != None)
-				m_active_edges[e].push_back(color);
+			auto v = m_test_visibility((*it).second.colors[0], color);
+			if (v != None)
+				m_active_edges[e].colors.push_back(color);
 		}
 	}
 
@@ -212,7 +220,7 @@ namespace depix {
 		// delete non active edges
 		auto& iter = m_active_edges.begin();
 		while (iter != m_active_edges.end()) {
-			if ((*iter).second.size() != 2) {
+			if ((*iter).second.colors.size() != 2) {
 				iter = m_active_edges.erase(iter);
 			}
 			else {
@@ -223,7 +231,7 @@ namespace depix {
 	}
 
 
-	void VoronoiDiagram::createDiagram()
+	void VoronoiDiagram::compute()
 	{
 		m_valency.clear();
 		m_diagram.clear();
@@ -233,15 +241,15 @@ namespace depix {
 		deleteNonActiveEdges();
 	}
 
-	const possible_cells_list VoronoiDiagram::getPossibleVoronoiCells() const {
+	const possible_cells_list& VoronoiDiagram::getPossibleVoronoiCells() const {
 		return cellsCalculation.possibleCells;
 	}
 
-	diagram VoronoiDiagram::getDiagram() {
+	const diagram& VoronoiDiagram::getDiagram() {
 		return m_diagram;
 	}
 
-	edge_list VoronoiDiagram::getActiveEdges() {
+	const edge_list& VoronoiDiagram::getActiveEdges() {
 		return m_active_edges;
 	}
 

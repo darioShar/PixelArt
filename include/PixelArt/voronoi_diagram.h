@@ -1,8 +1,8 @@
 #pragma once
 
 #include <unordered_map>
-#include "graph.h"
 #include <iostream>
+#include <PixelArt/pixel_graph.h>
 
 /* Strategy :
 * Constructing cell : easy heuristic, just check connected neighbouring nodes
@@ -13,15 +13,20 @@
 
 */
 
-namespace depix {
+namespace pa {
 
+	// Some types
 	using voronoiCell = std::vector<Point>;
 	using voronoiCellType = uint8_t; // 8 bits
-	using CircleDir = std::pair<Direction, Direction>;
-	using diagram = std::unordered_map<Point, std::vector<Point>>;
 
 	using diagram = std::unordered_map<Point, std::vector<Point>>;
-	using edge_list = std::unordered_map<Edge, std::vector<sf::Color>>;
+
+	struct EdgeProperties {
+		std::vector<sf::Color> colors;
+		Visibility v;
+	};
+
+	using edge_list = std::unordered_map<Edge, EdgeProperties>;
 
 
 	// Going in this fashion :
@@ -51,6 +56,9 @@ namespace depix {
 	// Checks if cell type can be in similarity graph
 	bool checkCellType(voronoiCellType type);
 
+
+	// static struct will let us laucnh initial calculation on the first instantiation of the
+	// Voronoi Diagram class. It will calculate all 81 possible cells and store them.
 	struct CellsCalculation {
 
 		possible_cells_list possibleCells;
@@ -71,16 +79,23 @@ namespace depix {
 		}
 	};
 
-	class VoronoiDiagram {
 
+	// Usage : will take a PixelGraph, extract its internal graph and then do all the calculations
+	// resulting in getting : 
+	// - a diagram which is adjcency list of all the points obtained after voronoi cell calculation
+	// and reduction of valence 2 nodes
+	// - an edge list which contains all active edges as defined by the parameters given on VoronoiDiagram construction,
+	// or set later on.
+	class VoronoiDiagram {
+		// Store each voronoiCell possible configurations 2^8
+		// In reality 3^4 since no crossing but well
+		static CellsCalculation cellsCalculation;
+
+		// initial pixel graph
 		const PixelGraph* m_graph;
 
 		//Voronoi points around each pixels starting from top_left, trigonometric parcours
 		std::vector<std::vector<voronoiCell>> m_voronoiPoints;
-
-		// Store each voronoiCell possible configurations 2^8
-		// In reality 3^4 since no crossing but well
-		static CellsCalculation cellsCalculation;
 
 		// Valency of each voronoi point for collapsing
 		std::unordered_map<Point, int> m_valency;
@@ -91,35 +106,49 @@ namespace depix {
 		// active edges
 		edge_list m_active_edges;
 
-		ColorImageOp<TestEdgeVisibility> m_test_visibility;
+		// Functor for edge decision
+		ImageOp<TestEdgeVisibility> m_test_visibility;
 
+		// Determine cell type on point p
 		voronoiCellType extractType(const IntPoint& p) const;
 
+		// Calling this function over the whole voronoi diagram will
+		// determine the active edges 
 		void checkAndAddActiveEdge(Point& pa, Point& pb, int x, int y);
 
+		// generate diagram without valence 2 reduction
 		void generateAccurateDiagram();
 
+		// valence 2 reduction and additional calculation to determine active edges
 		void simplifyDiagram();
 
+		// Called remove Edges calssified as None.
 		void deleteNonActiveEdges();
 
 	public:
+		// Constructor
 		VoronoiDiagram(EdgeDissimilarityParam p = EdgeDissimilarityParam());
 
+		// Give pixel graph on which calculation will be done
 		void setGraph(const PixelGraph& graph);
 
-		const possible_cells_list getPossibleVoronoiCells() const;
+		// Give new set of parameter for active edge determination
+		void setParam(const EdgeDissimilarityParam& p);
 
-		//Creates Voronoi Diagram
-		void createDiagram();
+		// Computes simplfiied voronoi diagram and determines active edges.
+		void compute();
 
-		diagram getDiagram();
+		// get computed diagram
+		const diagram& getDiagram();
 
-		edge_list getActiveEdges();
+		// get computed list of active edges
+		const edge_list& getActiveEdges();
 
+		// get underlying graph
 		const PixelGraph* getGraph() { return m_graph; };
+
+		// get all possible voronoi cell variation; Accurate reprensentation, not simplified.
+		const possible_cells_list& getPossibleVoronoiCells() const;
 	};
 
-	// Declare
-	//CellsCalculation VoronoiDiagram::cellsCalculation;
 }
