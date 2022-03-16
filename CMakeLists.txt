@@ -62,8 +62,8 @@ set(SOURCE_FILE src/main.cpp)
 set(SRCS
     ${CMAKE_CURRENT_SOURCE_DIR}/src/interpolation.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/src/interpolation_impl.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/graph.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/src/voronoi.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/pixel_graph.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/src/voronoi_diagram.cpp
 )
 
 # specify build tree
