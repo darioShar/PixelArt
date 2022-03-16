@@ -9,6 +9,8 @@ namespace pa {
 	struct ColorYUV {
 		float Y, U, V;
 
+		ColorYUV() : Y(0.0), U(0.0), V(0.0) {}
+		ColorYUV(float a, float b, float c) : Y(a), U(b), V(c) {}
 		// Converts RGB to YUV
 		void convertRGB(const sf::Color& c) {
 			Y= (0.299 * c.r + 0.587 * c.g + 0.114 * c.b);
@@ -22,7 +24,7 @@ namespace pa {
 	struct PixelGraphParam {
 		const sf::Image& image;
 		ColorYUV color;
-		PixelGraphParam(const sf::Image& im, ColorYUV c_yuv = ColorYUV({ 42.0, 7.0, 6.0 })) 
+		PixelGraphParam(const sf::Image& im, ColorYUV c_yuv = ColorYUV({ 42.0, 7.0, 6.0 }))
 			: image(im), color(c_yuv) {}
 	};
 
@@ -50,8 +52,9 @@ namespace pa {
 	// Parameters to determine edge type. Depends on YUV distance between
 	// adjcent colors.
 	struct EdgeDissimilarityParam {
-		float shadingYUVDistance = 4.0 / 255.0;
-		float contourYUVDistance = 100.0 / 255.0;
+		float shadingYUVDistance;
+		float contourYUVDistance;
+		EdgeDissimilarityParam(float a = 4.0/255.0, float b = 100.0/255.0) : shadingYUVDistance(a), contourYUVDistance(b) {}
 	};
 
 	// Functor to do edge type calculation.
